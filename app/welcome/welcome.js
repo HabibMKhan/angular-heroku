@@ -84,7 +84,7 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 		xhr.send(data);
 		console.log('data received', data);
 
-		https://api.twitch.tv/kraken/oauth2/authorize?response_type=token+id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com/#/welcome&scope=viewing_activity_read
+		// https://api.twitch.tv/kraken/oauth2/authorize?response_type=token+id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com/#/welcome&scope=viewing_activity_read
 
 	}
 
