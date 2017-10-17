@@ -110,35 +110,50 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
       'scope': 'donations.read+donations.create'
 		};
 
+		let myHeaders = new Headers();
+		console.log('myHeaders', myHeaders);
+		myHeaders.append('Access-Control-Allow-Origin', '*');
+
+		let requestOptions = {
+			method: 'GET',
+			headers: myHeaders,
+			mode: 'cors',
+			cache: 'default'
+		}
 		console.log('Just set up token config to contain: ', tokenConfig);
-		var data = JSON.stringify(true);
+		// var data = JSON.stringify(true);
 
-		var xhr = new XMLHttpRequest();
-		xhr.withCredentials = true;
+		// var xhr = new XMLHttpRequest();
+		// xhr.withCredentials = true;
 
-		xhr.addEventListener("readystatechange", function () {
-		  if (this.readyState === this.DONE) {
-		    console.log(this.responseText);
-		  }
-		});
+		// xhr.addEventListener("readystatechange", function () {
+		//   if (this.readyState === this.DONE) {
+		//     console.log(this.responseText);
+		//   }
+		// });
 		let qs = `client_id=${tokenConfig.client_id}&redirect_uri=${tokenConfig.redirect_uri}&response_type=${tokenConfig.response_type}&scope=${tokenConfig.scope}`
 
 		let url = "https://streamlabs.com/api/v1.0/authorize?" + qs;
 		console.log('url used', url);
-		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token%20id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com&scope=viewing_activity_read" );
-		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt" );
-		xhr.open("GET", "https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create", true );
 
-		xhr.send(data);
-		console.log('data received', data);
 
-		xhr.onreadystatechange = function() {//Call a function when the state changes.
-	    if(xhr.status == 200) {
-	        console.log('xhr from ', xhr);
-					alert(xhr.responseText);
-	    }
-		}
-		console.log('xhr', xhr);
+		fetch(url, requestOptions).then((response) => {
+			console.log(response.blob());
+		});
+
+		// xhr.open("GET", "https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create", true );
+
+		// xhr.send(data);
+		// console.log('data received', data);
+		//
+		// xhr.onreadystatechange = function() {//Call a function when the state changes.
+	  //   if(xhr.status == 200) {
+	  //       console.log('xhr from ', xhr);
+		// 			alert(xhr.responseText);
+	  //   }
+		// }
+		// console.log('xhr', xhr);
+
 		// https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create
 	}
 
