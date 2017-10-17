@@ -79,7 +79,9 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
 		let url = "https://streamlabs.com/api/v1.0/authorize?" + qs;
 		console.log('url used', url);
-		xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token%20id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com&scope=viewing_activity_read" );
+		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token%20id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com&scope=viewing_activity_read" );
+		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt" );
+		xhr.open("POST", "https://api.twitch.tv/kraken/oauth2/token?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&client_secret=fj4ni7pgrhmot62fvlwgrofv6mgjrf&grant_type=client_credentials" );
 
 		xhr.send(data);
 		console.log('data received', data);
