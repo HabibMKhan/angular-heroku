@@ -9,7 +9,8 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 	});
 }])
 
-.controller('WelcomeCtrl', ['$scope', 'CommonProp', '$firebaseArray', '$firebaseObject', '$location', function($scope, CommonProp, $firebaseArray, $firebaseObject, $location){
+.controller('WelcomeCtrl', ['$scope', 'CommonProp', '$firebaseArray', '$firebaseObject', '$location',
+	function($scope, CommonProp, $firebaseArray, $firebaseObject, $location){
 	$scope.username = CommonProp.getUser();
 
 	if(!$scope.username){
@@ -65,7 +66,7 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 		};
 
 		console.log('Just set up token config to contain: ', tokenConfig);
-		var data = JSON.stringify(false);
+		var data = JSON.stringify(true);
 
 		var xhr = new XMLHttpRequest();
 		xhr.withCredentials = true;
@@ -81,15 +82,21 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 		console.log('url used', url);
 		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token%20id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com&scope=viewing_activity_read" );
 		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt" );
-		xhr.open("POST", "https://api.twitch.tv/kraken/oauth2/token?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&client_secret=fj4ni7pgrhmot62fvlwgrofv6mgjrf&grant_type=client_credentials" );
+		xhr.open("POST", "https://api.twitch.tv/kraken/oauth2/token?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&client_secret=fj4ni7pgrhmot62fvlwgrofv6mgjrf&grant_type=client_credentials", true );
 
 		xhr.send(data);
 		console.log('data received', data);
 
-		// https://api.twitch.tv/kraken/oauth2/authorize?response_type=token+id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com/#/welcome&scope=viewing_activity_read
-
+		xhr.onreadystatechange = function() {//Call a function when the state changes.
+	    if(xhr.status == 200) {
+	        console.log('xhr from ', xhr);
+					alert(xhr.responseText);
+	    }
+		}
+		console.log('xhr', xhr);
 	}
 
+		// https://api.twitch.tv/kraken/oauth2/authorize?response_type=token+id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com/#/welcome&scope=viewing_activity_read
 
 
 
