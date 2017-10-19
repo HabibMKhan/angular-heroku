@@ -53,27 +53,29 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
 	$scope.updateDonationsDB = (donationsArray) => {
 		let donationsFromDB = $scope.donations;
-		let missingDonations = _.differenceWith(donationsArray, donationsFromDB, _.isEqual);
-		console.log('missingDonations', missingDonations);
 		console.log('donationsFromDB', donationsFromDB);
 		console.log('donationsFromDB.length', donationsFromDB.length);
 		const size = donationsFromDB.length - 1;
 		console.log('donationsFromDB[size]', donationsFromDB[size]);
 		console.log('donationsFromDB[donationsFromDB.length-1]', donationsFromDB[donationsFromDB.length-1]);
-		// if (missingDonations.length) {
-		// 	$scope.donations.$add(missingDonations)
-		// 	.then((ref) => {
-		// 		console.log(ref);
-		// 		$scope.success = true;
-		// 		window.setTimeout(function() {
-		// 			$scope.$apply(function(){
-		// 				$scope.success = false;
-		// 			});
-		// 		}, 2000);
-		// 	}, function(error){
-		// 		console.log(error);
-		// 	});
-		// }
+		let lastDBEntry = donationsFromDB[donationsFromDB.length-1];
+		console.log('lastDBEntry', lastDBEntry);
+		let missingDonations = _.differenceWith(donationsArray, lastDBEntry, _.isEqual);
+		console.log('missingDonations', missingDonations);
+		if (missingDonations.length) {
+			$scope.donations.$add(missingDonations)
+			.then((ref) => {
+				console.log(ref);
+				$scope.success = true;
+				window.setTimeout(function() {
+					$scope.$apply(function(){
+						$scope.success = false;
+					});
+				}, 2000);
+			}, function(error){
+				console.log(error);
+			});
+		}
 	};
 
 	$scope.editPost = function(id){
