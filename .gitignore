@@ -6,4 +6,3 @@ tmp
 .DS_Store
 .idea
 package-lock.json
-app/config.js
