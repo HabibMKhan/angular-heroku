@@ -1,4 +1,5 @@
 'use strict';
+// const request = require('request');
 
 angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
@@ -11,14 +12,40 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
 .controller('WelcomeCtrl', ['$scope', 'CommonProp', '$firebaseArray', '$firebaseObject', '$location',
 	function($scope, CommonProp, $firebaseArray, $firebaseObject, $location){
+	// Set Up
+	$scope.showAdminPanel = false;
 	$scope.username = CommonProp.getUser();
 
+	// Username Check If Administrator
 	if(!$scope.username){
 		$location.path('/home');
+	} else if ($scope.username === 'habibmkhan92@gmail.com' || $scope.username === 'david.AS1337@gmail.com') {
+		$scope.showAdminPanel = true;
+		// $scope.$digest();
 	}
+
+	var donationsRef = firebase.database().ref().child('Donations');
+	$scope.donations = $firebaseArray(donationsRef);
 
 	var ref = firebase.database().ref().child('Articles');
 	$scope.articles = $firebaseArray(ref);
+
+	$scope.updateDonationsDB = (donationsArray) => {
+		let donationsFromDB = $scope.donations;
+		let missingDonations = _.differenceWith(donationsArray, donationsFromDB, _.isEqual);
+		$scope.donations.$add(missingDonations)
+		.then((ref) => {
+			console.log(ref);
+			$scope.success = true;
+			window.setTimeout(function() {
+				$scope.$apply(function(){
+					$scope.success = false;
+				});
+			}, 2000);
+		}, function(error){
+			console.log(error);
+		});
+	};
 
 	$scope.editPost = function(id){
 		var ref = firebase.database().ref().child('Articles/' + id);
@@ -52,131 +79,90 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 		CommonProp.logoutUser();
 	};
 
-	$scope.getToken = () => {
-		console.log('getting twitch data...')
-		const TWITCH_INFO = {
-			client_id: 'sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad',
-			redirect_uri: 'https://angular-firebase-habib.herokuapp.com/#/welcome'
+	$scope.getStreamLabsToken = () => {
+		console.log('getting stream labs token...');
+	  let z = $location.absUrl();
+		// gets kfgwkekgrbegrwerjgn from => "Blahblah?code=kfgwkekgrbegrwerjgn#/dfsknsnd";
+	  let permissionsCode = z.split("?code=");
+	  permissionsCode = permissionsCode[1].split("#/")[0];
+
+		const requestBody = {
+			client_id: appConfig['STREAMLABS'].client_id,
+			client_secret: appConfig['STREAMLABS'].client_secret,
+			redirect_uri: appConfig['STREAMLABS'].redirect_uri,
+			grant_type: appConfig['STREAMLABS'].grant_type
 		};
-		let tokenConfig = {
-			'client_id': TWITCH_INFO['client_id'],
-      'redirect_uri': TWITCH_INFO['redirect_uri'],
-      'response_type': 'code',
-      'scope': 'donations.read'
-		};
+		Object.assign(requestBody, { code: permissionsCode } );
 
-		console.log('Just set up token config to contain: ', tokenConfig);
-		var data = JSON.stringify(true);
+		let myHeaders = new Headers();
+		// myHeaders.append('grant_type', 'authorization_code');
+		myHeaders.append('Content-Type', 'application/json');
+		myHeaders.append('Accept', 'application/json');
+		console.log('myHeaders', myHeaders);
+		console.log('permissionsCode', permissionsCode);
+		myHeaders.append('Access-Control-Allow-Origin', 'http://localhost:8000');
+		// myHeaders.append('Origin', 'http://localhost:8000');
+		myHeaders.append('Access-Control-Request-Method', 'POST');
+		myHeaders.append('Access-Control-Request-Headers', 'Access-Control-Allow-Origin, Content-Type');
 
-		var xhr = new XMLHttpRequest();
-		xhr.withCredentials = true;
-
-		xhr.addEventListener("readystatechange", function () {
-		  if (this.readyState === this.DONE) {
-		    console.log(this.responseText);
-		  }
-		});
-		let qs = `response_type=${tokenConfig.response_type}&client_id=${tokenConfig.client_id}&redirect_uri=${tokenConfig.redirect_uri}&scope=${tokenConfig.scope}`
-
-		let url = "https://streamlabs.com/api/v1.0/authorize?" + qs;
+		const proxyurl = "https://cors-anywhere.herokuapp.com/";
+		// let url = "https://streamlabs.com/api/v1.0/token";
+		let url = proxyurl + "https://streamlabs.com/api/v1.0/token";
 		console.log('url used', url);
-		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token%20id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com&scope=viewing_activity_read" );
-		// xhr.open("GET", "https://api.twitch.tv/kraken/oauth2/authorize?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt" );
-		xhr.open("POST", "https://api.twitch.tv/kraken/oauth2/token?client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&client_secret=fj4ni7pgrhmot62fvlwgrofv6mgjrf&grant_type=client_credentials", true );
 
-		xhr.send(data);
-		console.log('data received', data);
-
-		xhr.onreadystatechange = function() {//Call a function when the state changes.
-	    if(xhr.status == 200) {
-	        console.log('xhr from ', xhr);
-					alert(xhr.responseText);
-	    }
+		let requestOptions = {
+			url: url,
+			method: 'POST',
+			headers: myHeaders,
+			body: JSON.stringify(requestBody),
+			mode: 'cors',
+			cache: 'default'
 		}
-		console.log('xhr', xhr);
+		console.log('Just set up requestBody to contain: ', requestBody);
+
+		fetch(url, requestOptions).then((response) => {
+			// console.log(response.blob());
+			// console.log(response);
+			return response.json();
+		}).then((data) => {
+			console.log('look at the data i found!!!!', data);
+			if (data.access_token) {
+				console.log('Using access token: ', data.access_token);
+				$scope.access_token = data.access_token;
+			}
+		}).catch((error) => {
+			console.log('error was: ', error);
+		});
 	}
 
-	$scope.getStreamLabs = () => {
-		console.log('getting stream labs data...')
-
-		const STREAMLABS_INFO = {
-			client_id: 'sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad',
-			redirect_uri: 'https://angular-firebase-habib.herokuapp.com'
-		};
-		let tokenConfig = {
-			'client_id': STREAMLABS_INFO['client_id'],
-      'redirect_uri': STREAMLABS_INFO['redirect_uri'],
-      'response_type': 'code',
-      'scope': 'donations.read+donations.create'
-		};
+	$scope.getSLDonations = () => {
+		let url = "https://streamlabs.com/api/v1.0/donations?access_token=" + $scope.access_token;
+		console.log('url used', url);
 
 		let myHeaders = new Headers();
 		console.log('myHeaders', myHeaders);
-		myHeaders.append('Access-Control-Allow-Origin', '*');
+		// myHeaders.append('Access-Control-Allow-Origin', '*');
 
 		let requestOptions = {
 			method: 'GET',
 			headers: myHeaders,
 			mode: 'cors',
 			cache: 'default'
-		}
-		console.log('Just set up token config to contain: ', tokenConfig);
-		// var data = JSON.stringify(true);
-
-		// var xhr = new XMLHttpRequest();
-		// xhr.withCredentials = true;
-
-		// xhr.addEventListener("readystatechange", function () {
-		//   if (this.readyState === this.DONE) {
-		//     console.log(this.responseText);
-		//   }
-		// });
-		let qs = `client_id=${tokenConfig.client_id}&redirect_uri=${tokenConfig.redirect_uri}&response_type=${tokenConfig.response_type}&scope=${tokenConfig.scope}`
-
-		let url = "https://streamlabs.com/api/v1.0/authorize?" + qs;
-		console.log('url used', url);
-
+		};
 
 		fetch(url, requestOptions).then((response) => {
-			console.log(response.blob());
+			return response.json();
+		}).then((responseData) => {
+			$scope.donationsData = responseData.data;
+			$scope.username = 'Habib!';
+			$scope.$digest();
+			console.log('responseData', responseData);
+			console.log('now that we have data... lets update DB');
+			$scope.updateDonationsDB(responseData.data);
+		}).catch((error) => {
+			console.log('error was: ', error);
 		});
-
-		// xhr.open("GET", "https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create", true );
-
-		// xhr.send(data);
-		// console.log('data received', data);
-		//
-		// xhr.onreadystatechange = function() {//Call a function when the state changes.
-	  //   if(xhr.status == 200) {
-	  //       console.log('xhr from ', xhr);
-		// 			alert(xhr.responseText);
-	  //   }
-		// }
-		// console.log('xhr', xhr);
-
-		// https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create
 	}
-
-		// https://api.twitch.tv/kraken/oauth2/authorize?response_type=token+id_token&client_id=yprajwgtjud39lbdvgv4lqgoq0qbwt&redirect_uri=https://angular-firebase-habib.herokuapp.com/#/welcome&scope=viewing_activity_read
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
