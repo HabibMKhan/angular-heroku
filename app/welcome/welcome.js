@@ -26,6 +26,27 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
 	var donationsRef = firebase.database().ref().child('Donations');
 	$scope.donations = $firebaseArray(donationsRef);
+	const length = $scope.donations.length - 1;
+	let x = $scope.donations;
+	console.log('yo heres $scope.donations: ', $scope.donations);
+	console.log('yo heres $scope.donations.length: ', $scope.donations.length);
+	console.log('yo heres x.length: ', x.length);
+	$scope.donationsData = $scope.donations[3];
+
+	donationsRef.on("value", function(snapshot) {
+		console.log('hey', snapshot.val());
+		let obj = snapshot.val();
+		let keys = Object.keys(obj);
+		let chosenKey = keys[keys.length - 1];
+		let myData = obj[chosenKey];
+		$scope.donationsData = obj[chosenKey];
+		console.log('obj', obj);
+		console.log('keys', keys);
+		console.log('chosenKey', chosenKey);
+		console.log('myData', myData);
+	}, function (error) {
+		console.log("Error: " + error.code);
+	});
 
 	var ref = firebase.database().ref().child('Articles');
 	$scope.articles = $firebaseArray(ref);
@@ -33,18 +54,26 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 	$scope.updateDonationsDB = (donationsArray) => {
 		let donationsFromDB = $scope.donations;
 		let missingDonations = _.differenceWith(donationsArray, donationsFromDB, _.isEqual);
-		$scope.donations.$add(missingDonations)
-		.then((ref) => {
-			console.log(ref);
-			$scope.success = true;
-			window.setTimeout(function() {
-				$scope.$apply(function(){
-					$scope.success = false;
-				});
-			}, 2000);
-		}, function(error){
-			console.log(error);
-		});
+		console.log('missingDonations', missingDonations);
+		console.log('donationsFromDB', donationsFromDB);
+		console.log('donationsFromDB.length', donationsFromDB.length);
+		const size = donationsFromDB.length - 1;
+		console.log('donationsFromDB[size]', donationsFromDB[size]);
+		console.log('donationsFromDB[donationsFromDB.length-1]', donationsFromDB[donationsFromDB.length-1]);
+		// if (missingDonations.length) {
+		// 	$scope.donations.$add(missingDonations)
+		// 	.then((ref) => {
+		// 		console.log(ref);
+		// 		$scope.success = true;
+		// 		window.setTimeout(function() {
+		// 			$scope.$apply(function(){
+		// 				$scope.success = false;
+		// 			});
+		// 		}, 2000);
+		// 	}, function(error){
+		// 		console.log(error);
+		// 	});
+		// }
 	};
 
 	$scope.editPost = function(id){
