@@ -16,12 +16,12 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 	$scope.showAdminPanel = false;
 	$scope.username = CommonProp.getUser();
 
-	// Username Check If Administrator
+	// Login is required for this web app. TODO: Should we force log in?
 	if(!$scope.username){
 		$location.path('/home');
 	} else if ($scope.username === 'habibmkhan92@gmail.com' || $scope.username === 'david.AS1337@gmail.com') {
+		// Username Check If Administrator
 		$scope.showAdminPanel = true;
-		// $scope.$digest();
 	}
 
 	var donationsRef = firebase.database().ref().child('Donations');
@@ -31,19 +31,16 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 	console.log('yo heres $scope.donations: ', $scope.donations);
 	console.log('yo heres $scope.donations.length: ', $scope.donations.length);
 	console.log('yo heres x.length: ', x.length);
-	$scope.donationsData = $scope.donations[3];
+	// $scope.donationsData = $scope.donations[3];
+	$scope.donationsData = [];
 
 	donationsRef.on("value", function(snapshot) {
-		console.log('hey', snapshot.val());
 		let obj = snapshot.val();
 		let keys = Object.keys(obj);
 		let chosenKey = keys[keys.length - 1];
 		let myData = obj[chosenKey];
 		$scope.donationsData = obj[chosenKey];
-		console.log('obj', obj);
-		console.log('keys', keys);
-		console.log('chosenKey', chosenKey);
-		console.log('myData', myData);
+		$scope.updateHallOfFame();
 	}, function (error) {
 		console.log("Error: " + error.code);
 	});
@@ -52,58 +49,7 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 	$scope.articles = $firebaseArray(ref);
 
 	$scope.updateDonationsDB = (donationsArray) => {
-		let donationsFromDB = $scope.donations;
-		console.log('donationsFromDB', donationsFromDB);
-		console.log('donationsFromDB.length', donationsFromDB.length);
-		const size = donationsFromDB.length - 1;
-		console.log('donationsFromDB[size]', donationsFromDB[size]);
-		console.log('donationsFromDB[donationsFromDB.length-1]', donationsFromDB[donationsFromDB.length-1]);
-		let lastDBEntry = donationsFromDB[donationsFromDB.length-1];
-		console.log('lastDBEntry', lastDBEntry);
-		let missingDonations = _.differenceWith(donationsArray, lastDBEntry, _.isEqual);
-		console.log('missingDonations', missingDonations);
-		if (missingDonations.length) {
-			$scope.donations.$add(missingDonations)
-			.then((ref) => {
-				console.log(ref);
-				$scope.success = true;
-				window.setTimeout(function() {
-					$scope.$apply(function(){
-						$scope.success = false;
-					});
-				}, 2000);
-			}, function(error){
-				console.log(error);
-			});
-		}
-	};
-
-	$scope.editPost = function(id){
-		var ref = firebase.database().ref().child('Articles/' + id);
-		$scope.editPostData = $firebaseObject(ref);
-	};
-
-	$scope.updatePost = function(id){
-		var ref = firebase.database().ref().child('Articles/' + id);
-		ref.update({
-			title: $scope.editPostData.title,
-			post: $scope.editPostData.post
-		}).then(function(ref){
-			$scope.$apply(function(){
-				$("#editModal").modal('hide');
-			});
-		}, function(error){
-			console.log(error);
-		});
-	};
-
-	$scope.deleteCnf = function(article){
-		$scope.deleteArticle = article;
-	};
-
-	$scope.deletePost = function(deleteArticle){
-		$scope.articles.$remove(deleteArticle);
-		$("#deleteModal").modal('hide');
+		$scope.donations.$add(donationsArray);
 	};
 
 	$scope.logout = function(){
@@ -168,6 +114,8 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 
 	$scope.getSLDonations = () => {
 		let url = "https://streamlabs.com/api/v1.0/donations?access_token=" + $scope.access_token;
+		// let tempAccessToken = 'fRiYmdIT7w9LrzFAChsMk15a6Kck7UJyoZRDqlRt';
+		// let url = "https://streamlabs.com/api/v1.0/donations?access_token=" + tempAccessToken;
 		console.log('url used', url);
 
 		let myHeaders = new Headers();
@@ -185,14 +133,67 @@ angular.module('webApp.welcome', ['ngRoute', 'firebase'])
 			return response.json();
 		}).then((responseData) => {
 			$scope.donationsData = responseData.data;
-			$scope.username = 'Habib!';
+			$scope.username = 'Habib';
 			$scope.$digest();
 			console.log('responseData', responseData);
 			console.log('now that we have data... lets update DB');
 			$scope.updateDonationsDB(responseData.data);
+			$scope.updateHallOfFame();
 		}).catch((error) => {
 			console.log('error was: ', error);
 		});
+	}
+
+	$scope.updateHallOfFame = () => {
+		let topDonors = [];
+		let donationsByUser = {};
+		// let donor = '';
+		// let amount = 0;
+		let donationObj = {};
+		let highestDonations = {
+			'scrubby': { amount: 10 },
+			'richguy': { amount: 999 },
+			'other': { amount: 22 },
+			'yo': { amount: 12 }
+		};
+		$scope.donationsData.forEach((donation) => {
+			// donor = donation.name;
+			// amount = donation.amount;
+			if (!donationsByUser[donation.name]) {
+				donationsByUser[donation.name] = {
+					amount: parseFloat(donation.amount)
+				};
+			} else {
+				donationsByUser[donation.name].amount = parseFloat(donationsByUser[donation.name].amount) +
+					parseFloat(donation.amount);
+			}
+		});
+		console.log('donationsByUser', donationsByUser);
+		let donorPeople = [];
+		for (const key in donationsByUser) {
+			donorPeople.push({
+				name: key,
+				amount: donationsByUser[key].amount
+			});
+		}
+		console.log('donationsByUser', donationsByUser);
+		let orderedDonors = _.sortBy(donorPeople, ['amount']).reverse();
+		console.log('orderedDonors', orderedDonors);
+		let hallOfFame = [];
+		let hallOfFameLimit = 0;
+		const HALL_OF_FAME_LIMIT = 25;
+		if (orderedDonors.length <= HALL_OF_FAME_LIMIT) {
+			hallOfFameLimit = orderedDonors.length;
+		} else {
+			hallOfFameLimit = HALL_OF_FAME_LIMIT;
+		}
+		for (let i = 0; i < hallOfFameLimit; i++) {
+			hallOfFame.push({
+				name: orderedDonors[i].name,
+				amount: orderedDonors[i].amount.toFixed(2)
+			});
+		}
+		$scope.hallOfFame = hallOfFame;
 	}
 
 

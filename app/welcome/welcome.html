@@ -5,43 +5,54 @@
 </head>
 <body ng-controller="WelcomeCtrl">
 
+<!-- NAVIGATION BAR -->
 <nav class="navbar navbar-inverse">
 	<div class="container-fluid">
 		<div class="navbar-header">
-			<a href="#" class="navbar-brand">WebApp</a>
+			<a href="#/welcome" class="navbar-brand">GosuPvP.com</a>
 		</div>
 		<ul class="nav navbar-nav">
 			<li class="active"><a href="#/welcome">Home</a></li>
-			<li><a href="#/addPost">Add Post</a></li>
 			<li ng-click="logout()"><a href="#">Logout</a></li>
 		</ul>
 	</div>
 </nav>
 
+<!-- WELCOME -->
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
-			<h3>Welcome Home {{username}} !</h3>
+			<h3>Welcome to the squad!</h3>
+			<h5>Signed in as {{username}}</h5>
 		</div>
 	</div>
 </div>
 
-<div class="container">
-	<div class="row" ng-repeat="article in articles">
-		<div class="col-md-12 well well-sm">
-			<h4>{{article.title}}</h4>
-			<p>{{article.post}}</p>
-			<button type="submit" class="btn btn-sm btn-primary" ng-click="editPost(article.$id)" data-target="#editModal" data-toggle="modal">Edit</button>
-			<button type="submit" class="btn btn-sm btn-danger" ng-click="deleteCnf(article)" data-target="#deleteModal" data-toggle="modal">Delete</button>
-		</div>
-	</div>
+<!-- HALL OF FAME -->
+<div class="container hof">
+	<h3 class="hof_heading">HALL OF FAME</h3>
+	<table class="table table-striped">
+		<tr>
+			<th>#</th>
+			<th>Pimp</th>
+			<th style="text-align: right;">Amount</th>
+		</tr>
+		<tr ng-repeat="(index, famousPerson) in hallOfFame">
+			<td>{{index+1}}</td>
+			<td>{{famousPerson.name}}</td>
+			<td style="text-align: right;">${{famousPerson.amount}}</td>
+		</tr>
+	</table>
 </div>
 
+<!-- ADMIN PANEL -->
 <div ng-show="showAdminPanel">
+	<!-- HALL OF FAME TEST CODE-->
+	<p>Actual HoF Data: {{hallOfFame}}</p>
 	<div class="container">
 		<div class="btn btn-sm btn-primary">
 			<!-- <a href="https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=http://localhost:8000&response_type=code&scope=donations.read+donations.create"> -->
-			<a href="https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=https://angular-firebase-habib.herokuapp.com&response_type=code&scope=donations.read+donations.create">
+			<a href="https://www.streamlabs.com/api/v1.0/authorize?client_id=sdGTj9jKWwjI1mlfu9jZf2AFxzJS99HxL7PWNKad&redirect_uri=http://localhost:8000&response_type=code&scope=donations.read+donations.create">
 				<span style="color:white">Step 1: Auth SL</span>
 			</a>
 		</div>
@@ -57,53 +68,8 @@
 		</button>
 	</div>
 	<div class="container">
-		<h3>Check out this dope donation data</h3>
+		<h3>Donation data from database</h3>
 		{{donationsData}}
-	</div>
-</div>
-
-<div class="container">
-	<div id="editModal" class="modal fade" role="dialog">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h4>Edit Post Details</h4>
-				</div>
-				<div class="modal-body">
-					<form role="form">
-						<div class="form-group">
-							<label for="title">Title</label>
-							<input type="text" name="title" class="form-control" ng-model="editPostData.title" />
-						</div>
-						<div class="form-group">
-							<label for="post">Post</label>
-							<textarea name="post" class="form-control" ng-model="editPostData.post"></textarea>
-						</div>
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-sm btn-primary" ng-click="updatePost(editPostData.$id)">Update Post</button>
-					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="container">
-	<div id="deleteModal" class="modal fade" role="dialog">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header"></div>
-				<div class="modal-body">
-					<p>Are you sure you want to delete the post?</p>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-sm btn-danger" ng-click="deletePost(deleteArticle)">Delete</button>
-					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
 	</div>
 </div>
 
